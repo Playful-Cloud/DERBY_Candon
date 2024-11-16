@@ -89,7 +89,7 @@
         // Replace with your Google Sheet ID and API key
         const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Correct Sheet ID
         const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k";
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=${apiKey}`;
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${YB}/values/Sheet1?key=${apiKey}`;
 
         // Fetch data from Google Sheets
         $.getJSON(apiUrl, function(data) {
