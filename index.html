@@ -8,60 +8,54 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+   
     <style>
-        body { font-family: Arial, sans-serif; }
-        .container {
-            max-width: 2300px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 { text-align: center; }
-        #resultsTable {
-            margin: 0 auto;
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #resultsTable th, #resultsTable td {
-            padding: 10px 15px;
-            text-align: left;
-            vertical-align: left;
-            word-wrap: break-word;
-        }
-        #resultsTable th {
-            font-size: 1.2rem;
-            background-color: #f4f4f4;
-        }
-        #resultsTable th, #resultsTable td {
-            word-wrap: break-word;
-        }
-        .notes-section {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-        }
-        .notes-section p {
-            font-size: 1rem;
-            color: #555;
-        }
-        .tabs-nav {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .tabs-nav button {
-            padding: 10px 20px;
-            margin: 0 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .tabs-nav button.active {
-            background-color: #0056b3;
-        }
-    </style>
+    body { font-family: Arial, sans-serif; }
+    .container {
+        max-width: 2300px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    h1 { text-align: center; }
+    #resultsTable {
+        margin: 0 auto;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    #resultsTable th, #resultsTable td {
+        padding: 10px 15px;
+        text-align: left;
+        vertical-align: top;
+        word-wrap: break-word;
+    }
+    #resultsTable th {
+        font-size: 1.2rem;
+        background-color: #f4f4f4;
+    }
+    #resultsTable th:nth-child(1), #resultsTable th:nth-child(3),
+    #resultsTable th:nth-child(4), #resultsTable th:nth-child(5),
+    #resultsTable th:nth-child(6), #resultsTable th:nth-child(7),
+    #resultsTable th:nth-child(8), #resultsTable th:nth-child(9) {
+        width: 12%;
+    }
+    #resultsTable th {
+        white-space: nowrap; /* Prevent text wrapping */
+        overflow: hidden; /* Hide overflowing text */
+        text-overflow: ellipsis; /* Show ellipsis for long text */
+    }
+    .notes-section {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+    }
+    .notes-section p {
+        font-size: 1rem;
+        color: #555;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -96,76 +90,84 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            // Replace with your Google Sheet ID and API Key
-            const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
-            const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
+    $(document).ready(function() {
+        const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
+        const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
 
-            // Default tab (YB)
-            let activeTab = 'YB';
+        let dataTable; // To store the DataTable instance
+        let activeTab = 'YB'; // Default active tab
 
-            // Function to load data and headers
-            function loadData(tab) {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
-
-                $.getJSON(apiUrl, function(data) {
-                    console.log("API Response:", data); // Log the response to the console
-                    
-                    // Clear current data
-                    let tableHeaders = '';
-                    let tableData = '';
-
-                    if (data && data.values && data.values.length > 1) {
-                        // Dynamically build table headers based on the first row
-                        data.values[0].forEach(function(header) {
-                            tableHeaders += `<th>${header}</th>`;
-                        });
-
-                        // Loop through data and add to the table
-                        data.values.slice(1).forEach(function(row) {
-                            tableData += "<tr>";
-                            row.forEach(function(cell) {
-                                tableData += `<td>${cell || ''}</td>`;  // Safely handle empty or undefined values
-                            });
-                            tableData += "</tr>";
-                        });
-                    } else {
-                        console.error("Data is missing or incorrectly formatted:", data);
-                    }
-
-                    // Populate table
-                    $('#resultsTable thead tr').html(tableHeaders);
-                    $('#resultsTable tbody').html(tableData);
-
-                    // Reinitialize DataTable after updating the content
-                    $('#resultsTable').DataTable();
-                }).fail(function(err) {
-                    console.error("Error fetching data: ", err);
-                    $("#resultsTable tbody").html("<tr><td colspan='9'>Failed to fetch data from Google Sheets. Check the console for errors.</td></tr>");
-                });
+        // Function to initialize or reinitialize DataTable
+        function initDataTable() {
+            if (dataTable) {
+                // Destroy previous instance
+                dataTable.destroy();
             }
+            // Reinitialize DataTable
+            dataTable = $('#resultsTable').DataTable({
+                destroy: true, // Ensure previous instance is removed
+                autoWidth: false, // Disable auto-width for better control
+                responsive: true // Ensure responsive table
+            });
+        }
 
-            // Load the default tab on initial load
-            loadData(activeTab);
+        // Function to load data for a specific tab
+        function loadData(tab) {
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
 
-            // Tab click handler
-            $('.tab-btn').click(function() {
-                // Remove active class from all buttons
+            $.getJSON(apiUrl, function(data) {
+                console.log(`Data for tab "${tab}":`, data);
+
+                let tableHeaders = '';
+                let tableData = '';
+
+                if (data && data.values && data.values.length > 1) {
+                    // Dynamically build headers
+                    data.values[0].forEach(header => {
+                        tableHeaders += `<th>${header}</th>`;
+                    });
+
+                    // Populate rows
+                    data.values.slice(1).forEach(row => {
+                        tableData += "<tr>";
+                        row.forEach(cell => {
+                            tableData += `<td>${cell || ''}</td>`; // Handle undefined or empty cells
+                        });
+                        tableData += "</tr>";
+                    });
+                } else {
+                    console.error("Invalid or missing data:", data);
+                }
+
+                // Update table structure
+                $('#resultsTable thead tr').html(tableHeaders);
+                $('#resultsTable tbody').html(tableData);
+
+                // Reinitialize DataTable
+                initDataTable();
+            }).fail(err => {
+                console.error("Error fetching data:", err);
+                $('#resultsTable tbody').html('<tr><td colspan="100%">Failed to load data. Please try again later.</td></tr>');
+            });
+        }
+
+        // Event listener for tab navigation
+        $('.tab-btn').on('click', function() {
+            const selectedTab = $(this).data('tab');
+
+            if (activeTab !== selectedTab) {
+                activeTab = selectedTab;
+
+                // Update active button styling
                 $('.tab-btn').removeClass('active');
-                
-                // Add active class to the clicked button
                 $(this).addClass('active');
 
-                // Get the tab name from the button data attribute
-                activeTab = $(this).data('tab');
-
-                // Load the data for the selected tab
+                // Load data for the selected tab
                 loadData(activeTab);
-            });
-
-            // Activate the first tab by default
-            $('.tab-btn').first().addClass('active');
+            }
         });
-    </script>
-</body>
-</html>
+
+        // Initial load for the default tab
+        loadData(activeTab);
+    });
+</script>
