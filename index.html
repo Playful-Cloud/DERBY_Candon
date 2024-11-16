@@ -89,8 +89,9 @@
         // Replace with your Google Sheet ID and API key
         const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Correct Sheet ID
         const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k";
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${YB}/values/Sheet1?key=${apiKey}`;
-
+        const apiUrl = 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/yb!A1:h4454?key=' + apiKey;
+                //OC300: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/yb!A1:h4454?key=' + apiKey,
+        
         // Fetch data from Google Sheets
         $.getJSON(apiUrl, function(data) {
             const tableData = data.values; // Get rows as 2D array
