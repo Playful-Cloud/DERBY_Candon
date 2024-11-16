@@ -78,46 +78,54 @@
         <div class="notes-section">
             <h2>Notes for Viewers</h2>
             <p>
-                Please note that the race results are displayed based on various factors, including performance in different locations such as Bauang, Balaoan, and Candon. The "TOTAL SPEED" represents the aggregate speed of the birds across these locations. 
-                If you have any further questions, feel free to reach out for clarification.
+                Please note that the race results are displayed based on various factors, including performance in different locations such as Bauang, Balaoan, and Candon. The "TOTAL SPEED" represents the aggregate speed of the birds across these locations...
             </p>
         </div>
     </div>
 
     <script>
-    $(document).ready(function() {
-        // Replace with your Google Sheet ID and API key
-        const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Correct Sheet ID
-        const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k";
-        const apiUrl = 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/yb!A1:h4454?key=' + apiKey;
-                //OC300: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/yb!A1:h4454?key=' + apiKey,
-        
-        // Fetch data from Google Sheets
-        $.getJSON(apiUrl, function(data) {
-            const tableData = data.values; // Get rows as 2D array
+        $(document).ready(function() {
+            // Replace with your Google Sheet ID and API Key
+            const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
+            const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
+            
+            // URL to fetch data from Google Sheets API with the correct tab name ("YB")
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/YB?key=${apiKey}`;
 
-            // Skip the header row and populate the table
-            tableData.slice(1).forEach((rowData) => {
-                const tableRow = `<tr>
-                    <td>${rowData[0]}</td>
-                    <td class="name-column">${rowData[1]}</td>
-                    <td>${rowData[2]}</td>
-                    <td>${rowData[3]}</td>
-                    <td>${rowData[4]}</td>
-                    <td>${rowData[5]}</td>
-                    <td>${rowData[6]}</td>
-                    <td>${rowData[7]}</td>
-                    <td>${rowData[8]}</td>
-                </tr>`;
-                $('#resultsTable tbody').append(tableRow);
+            // Fetch data from the Google Sheets API
+            $.getJSON(apiUrl, function(data) {
+                console.log("API Response:", data); // Log the response to the console
+                
+                let tableData = "";
+                
+                // Check if the data is valid
+                if (data && data.values && data.values.length > 1) {
+                    data.values.slice(1).forEach(function(row) {
+                        // Ensure that the row has at least 9 cells
+                        if (row.length >= 9) {
+                            tableData += "<tr>";
+                            row.forEach(function(cell) {
+                                tableData += `<td>${cell || ''}</td>`;  // Safely handle empty or undefined values
+                            });
+                            tableData += "</tr>";
+                        } else {
+                            console.warn("Skipping row due to insufficient data:", row);
+                        }
+                    });
+                } else {
+                    console.error("Data is missing or incorrectly formatted:", data);
+                }
+
+                // Populate the DataTable body with the fetched data
+                $('#resultsTable tbody').html(tableData);
+                
+                // Initialize DataTable after adding the data
+                $('#resultsTable').DataTable();
+            }).fail(function(err) {
+                console.error("Error fetching data: ", err);
+                $("#resultsTable").html("<tr><td colspan='9'>Failed to fetch data from Google Sheets. Check the console for errors.</td></tr>");
             });
-
-            // Initialize DataTables
-            $('#resultsTable').DataTable();
-        }).fail(function(err) {
-            console.error("Error fetching data: ", err);
         });
-    });
     </script>
 </body>
 </html>
