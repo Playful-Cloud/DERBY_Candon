@@ -99,15 +99,15 @@
             // Skip the header row and populate the table
             tableData.slice(1).forEach((rowData, index) => {
                 const tableRow = `<tr>
-                    <td>${index + 1}</td>
-                    <td class="name-column">${rowData[0]}</td>
-                    <td>${rowData[1]}</td>
-                    <td>${rowData[2]}</td>
-                    <td>${rowData[3]}</td>
-                    <td>${rowData[4]}</td>
-                    <td>${rowData[5]}</td>
-                    <td>${rowData[6]}</td>
-                    <td>${rowData[7]}</td>
+                    <td>${columns[0]}</td>
+                        <td class="name-column">${columns[1]}</td>
+                        <td>${columns[2]}</td>
+                        <td>${columns[3]}</td>
+                        <td>${columns[4]}</td>
+                        <td>${columns[5]}</td>
+                        <td>${columns[6]}</td>
+                        <td>${columns[7]}</td>
+                        <td>${columns[8]}</td>
                 </tr>`;
                 $('#resultsTable tbody').append(tableRow);
             });
