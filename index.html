@@ -1,34 +1,145 @@
-<script>
-    $(document).ready(function() {
-        // Replace with your Google Sheet ID and API key
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Results</title>
+    <!-- Include jQuery and DataTables CSS/JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container {
+            max-width: 2300px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { text-align: center; }
+        #resultsTable {
+            margin: 0 auto;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #resultsTable th, #resultsTable td {
+            padding: 10px 15px;
+            text-align: left;
+            vertical-align: left;
+            word-wrap: break-word;
+        }
+        #resultsTable th {
+            font-size: 1.2rem;
+            background-color: #f4f4f4;
+        }
+        #resultsTable th, #resultsTable td {
+            word-wrap: break-word;
+        }
+        #resultsTable th:nth-child(1), #resultsTable th:nth-child(3),
+        #resultsTable th:nth-child(4), #resultsTable th:nth-child(5),
+        #resultsTable th:nth-child(6), #resultsTable th:nth-child(7),
+        #resultsTable th:nth-child(8), #resultsTable th:nth-child(9) {
+            width: 12%;
+        }
+        .notes-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .notes-section p {
+            font-size: 1rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BBCM - NDR - DERBY - YB - Candon - 3rd LAP</h1>
+        <table id="resultsTable" class="display">
+            <thead>
+                <tr>
+                    <th>COUNT</th>
+                    <th class="name-column">NAME</th>
+                    <th>RING_BAND</th>
+                    <th>BAUANG</th>
+                    <th>BALAOAN</th>
+                    <th>CANDON</th>
+                    <th>POINTS</th>
+                    <th>TOTAL SPEED</th>
+                    <th>RANK</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be loaded here via JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="notes-section">
+            <h2>Notes for Viewers</h2>
+            <p>
+                Please note that the race results are displayed based on various factors, including performance in different locations such as Bauang, Balaoan, and Candon. The "TOTAL SPEED" represents the aggregate speed of the birds across these locations. 
+                If you have any further questions, feel free to reach out for clarification.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Replace with your Google Sheet ID
+            
         const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Correct Sheet ID
         const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k";
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=${apiKey}`;
+            
+            // Fetch data from Google Sheets
+            $.getJSON(apiUrl, function(data) {
+                const entries = data.feed.entry;
 
-        // Fetch data from Google Sheets
-        $.getJSON(apiUrl, function(data) {
-            const tableData = data.values; // Get rows as 2D array
+                // Parse the data into a 2D array
+                const tableData = [];
+                let row = [];
+                let currentRow = 1;
 
-            // Skip the header row and populate the table
-            tableData.slice(1).forEach((rowData, index) => {
-                const tableRow = `<tr>
-                    <td>${index + 1}</td>
-                    <td class="name-column">${rowData[0]}</td>
-                    <td>${rowData[1]}</td>
-                    <td>${rowData[2]}</td>
-                    <td>${rowData[3]}</td>
-                    <td>${rowData[4]}</td>
-                    <td>${rowData[5]}</td>
-                    <td>${rowData[6]}</td>
-                    <td>${rowData[7]}</td>
-                </tr>`;
-                $('#resultsTable tbody').append(tableRow);
+                entries.forEach(entry => {
+                    const entryRow = parseInt(entry.gs$cell.row);
+                    const entryCol = parseInt(entry.gs$cell.col);
+
+                    // If we move to a new row, push the completed row to tableData
+                    if (entryRow > currentRow) {
+                        tableData.push(row);
+                        row = [];
+                        currentRow = entryRow;
+                    }
+                    // Add the current cell's value to the row
+                    row.push(entry.gs$cell.$t);
+                });
+                // Push the final row
+                tableData.push(row);
+
+                // Skip the header row and populate the table
+                tableData.slice(1).forEach((rowData, index) => {
+                    const tableRow = `<tr>
+                        <td>${index + 1}</td>
+                        <td class="name-column">${rowData[0]}</td>
+                        <td>${rowData[1]}</td>
+                        <td>${rowData[2]}</td>
+                        <td>${rowData[3]}</td>
+                        <td>${rowData[4]}</td>
+                        <td>${rowData[5]}</td>
+                        <td>${rowData[6]}</td>
+                        <td>${rowData[7]}</td>
+                    </tr>`;
+                    $("#resultsTable tbody").append(tableRow);
+                });
+
+                // Initialize DataTable
+                $('#resultsTable').DataTable({
+                    responsive: true,
+                    autoWidth: false
+                });
             });
-
-            // Initialize DataTables
-            $('#resultsTable').DataTable();
-        }).fail(function(err) {
-            console.error("Error fetching data: ", err);
         });
-    });
-</script>
+    </script>
+</body>
+</html>
