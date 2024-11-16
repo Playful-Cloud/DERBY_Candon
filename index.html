@@ -35,12 +35,6 @@
         #resultsTable th, #resultsTable td {
             word-wrap: break-word;
         }
-        #resultsTable th:nth-child(1), #resultsTable th:nth-child(3),
-        #resultsTable th:nth-child(4), #resultsTable th:nth-child(5),
-        #resultsTable th:nth-child(6), #resultsTable th:nth-child(7),
-        #resultsTable th:nth-child(8), #resultsTable th:nth-child(9) {
-            width: 12%;
-        }
         .notes-section {
             margin-top: 30px;
             padding: 15px;
@@ -51,27 +45,44 @@
             font-size: 1rem;
             color: #555;
         }
+        .tabs-nav {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .tabs-nav button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .tabs-nav button.active {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>BBCM - NDR - DERBY - YB - Candon - 3rd LAP</h1>
+
+        <!-- Navigation for Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn" data-tab="YB">YB</button>
+            <button class="tab-btn" data-tab="FR2">FR2</button>
+            <button class="tab-btn" data-tab="Tab3">Tab3</button>
+            <!-- Add more buttons as needed -->
+        </div>
+
         <table id="resultsTable" class="display">
             <thead>
                 <tr>
-                    <th>COUNT</th>
-                    <th class="name-column">NAME</th>
-                    <th>RING_BAND</th>
-                    <th>BAUANG</th>
-                    <th>BALAOAN</th>
-                    <th>CANDON</th>
-                    <th>POINTS</th>
-                    <th>TOTAL SPEED</th>
-                    <th>RANK</th>
+                    <!-- Headers will be dynamically loaded -->
                 </tr>
             </thead>
             <tbody>
-                <!-- Data will be loaded here via JavaScript -->
+                <!-- Data will be dynamically loaded -->
             </tbody>
         </table>
 
@@ -88,43 +99,71 @@
             // Replace with your Google Sheet ID and API Key
             const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
             const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
-            
-            // URL to fetch data from Google Sheets API with the correct tab name ("YB")
-            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/YB?key=${apiKey}`;
 
-            // Fetch data from the Google Sheets API
-            $.getJSON(apiUrl, function(data) {
-                console.log("API Response:", data); // Log the response to the console
-                
-                let tableData = "";
-                
-                // Check if the data is valid
-                if (data && data.values && data.values.length > 1) {
-                    data.values.slice(1).forEach(function(row) {
-                        // Ensure that the row has at least 9 cells
-                        if (row.length >= 9) {
+            // Default tab (YB)
+            let activeTab = 'YB';
+
+            // Function to load data and headers
+            function loadData(tab) {
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
+
+                $.getJSON(apiUrl, function(data) {
+                    console.log("API Response:", data); // Log the response to the console
+                    
+                    // Clear current data
+                    let tableHeaders = '';
+                    let tableData = '';
+
+                    if (data && data.values && data.values.length > 1) {
+                        // Dynamically build table headers based on the first row
+                        data.values[0].forEach(function(header) {
+                            tableHeaders += `<th>${header}</th>`;
+                        });
+
+                        // Loop through data and add to the table
+                        data.values.slice(1).forEach(function(row) {
                             tableData += "<tr>";
                             row.forEach(function(cell) {
                                 tableData += `<td>${cell || ''}</td>`;  // Safely handle empty or undefined values
                             });
                             tableData += "</tr>";
-                        } else {
-                            console.warn("Skipping row due to insufficient data:", row);
-                        }
-                    });
-                } else {
-                    console.error("Data is missing or incorrectly formatted:", data);
-                }
+                        });
+                    } else {
+                        console.error("Data is missing or incorrectly formatted:", data);
+                    }
 
-                // Populate the DataTable body with the fetched data
-                $('#resultsTable tbody').html(tableData);
+                    // Populate table
+                    $('#resultsTable thead tr').html(tableHeaders);
+                    $('#resultsTable tbody').html(tableData);
+
+                    // Reinitialize DataTable after updating the content
+                    $('#resultsTable').DataTable();
+                }).fail(function(err) {
+                    console.error("Error fetching data: ", err);
+                    $("#resultsTable tbody").html("<tr><td colspan='9'>Failed to fetch data from Google Sheets. Check the console for errors.</td></tr>");
+                });
+            }
+
+            // Load the default tab on initial load
+            loadData(activeTab);
+
+            // Tab click handler
+            $('.tab-btn').click(function() {
+                // Remove active class from all buttons
+                $('.tab-btn').removeClass('active');
                 
-                // Initialize DataTable after adding the data
-                $('#resultsTable').DataTable();
-            }).fail(function(err) {
-                console.error("Error fetching data: ", err);
-                $("#resultsTable").html("<tr><td colspan='9'>Failed to fetch data from Google Sheets. Check the console for errors.</td></tr>");
+                // Add active class to the clicked button
+                $(this).addClass('active');
+
+                // Get the tab name from the button data attribute
+                activeTab = $(this).data('tab');
+
+                // Load the data for the selected tab
+                loadData(activeTab);
             });
+
+            // Activate the first tab by default
+            $('.tab-btn').first().addClass('active');
         });
     </script>
 </body>
