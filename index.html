@@ -88,7 +88,7 @@
         $(document).ready(function() {
             // Replace with your Google Sheet ID
             const sheetId = "2PACX-1vQS-PG_5NKJGN2ax4I2gzY1feS-Fr59UkRp0natF9vJ64H0NAU0VIvF2EDiJd-PsiO2y_ZMQssptiGi";
-            const apiUrl = `https://spreadsheets.google.com/feeds/cells/${sheetId}/1/public/values?alt=json`;
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=YOUR_API_KEY`;
 
             // Fetch data from Google Sheets
             $.getJSON(apiUrl, function(data) {
