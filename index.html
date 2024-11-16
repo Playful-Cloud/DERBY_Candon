@@ -85,61 +85,37 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            // Replace with your Google Sheet ID
-            
+        <script>
+    $(document).ready(function() {
+        // Replace with your Google Sheet ID and API key
         const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Correct Sheet ID
         const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k";
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=${apiKey}`;
-            
-            // Fetch data from Google Sheets
-            $.getJSON(apiUrl, function(data) {
-                const entries = data.feed.entry;
 
-                // Parse the data into a 2D array
-                const tableData = [];
-                let row = [];
-                let currentRow = 1;
+        // Fetch data from Google Sheets
+        $.getJSON(apiUrl, function(data) {
+            const tableData = data.values; // Get rows as 2D array
 
-                entries.forEach(entry => {
-                    const entryRow = parseInt(entry.gs$cell.row);
-                    const entryCol = parseInt(entry.gs$cell.col);
-
-                    // If we move to a new row, push the completed row to tableData
-                    if (entryRow > currentRow) {
-                        tableData.push(row);
-                        row = [];
-                        currentRow = entryRow;
-                    }
-                    // Add the current cell's value to the row
-                    row.push(entry.gs$cell.$t);
-                });
-                // Push the final row
-                tableData.push(row);
-
-                // Skip the header row and populate the table
-                tableData.slice(1).forEach((rowData, index) => {
-                    const tableRow = `<tr>
-                        <td>${index + 1}</td>
-                        <td class="name-column">${rowData[0]}</td>
-                        <td>${rowData[1]}</td>
-                        <td>${rowData[2]}</td>
-                        <td>${rowData[3]}</td>
-                        <td>${rowData[4]}</td>
-                        <td>${rowData[5]}</td>
-                        <td>${rowData[6]}</td>
-                        <td>${rowData[7]}</td>
-                    </tr>`;
-                    $("#resultsTable tbody").append(tableRow);
-                });
-
-                // Initialize DataTable
-                $('#resultsTable').DataTable({
-                    responsive: true,
-                    autoWidth: false
-                });
+            // Skip the header row and populate the table
+            tableData.slice(1).forEach((rowData, index) => {
+                const tableRow = `<tr>
+                    <td>${index + 1}</td>
+                    <td class="name-column">${rowData[0]}</td>
+                    <td>${rowData[1]}</td>
+                    <td>${rowData[2]}</td>
+                    <td>${rowData[3]}</td>
+                    <td>${rowData[4]}</td>
+                    <td>${rowData[5]}</td>
+                    <td>${rowData[6]}</td>
+                    <td>${rowData[7]}</td>
+                </tr>`;
+                $('#resultsTable tbody').append(tableRow);
             });
+
+            // Initialize DataTables
+            $('#resultsTable').DataTable();
+        }).fail(function(err) {
+            console.error("Error fetching data: ", err);
         });
-    </script>
-</body>
-</html>
+    });
+</script>
