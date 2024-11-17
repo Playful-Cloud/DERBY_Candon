@@ -62,7 +62,7 @@
     </div>
 
     <script>
-        $(document).ready(function() {
+$(document).ready(function() {
     const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
     const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
     let dataTable; // DataTable instance
@@ -70,9 +70,9 @@
 
     // Map `data-tab` to actual sheet names
     const tabToSheetMap = {
-        "YB": "YB",
-        "FR2": "FR2", // Update to match the sheet name for FR2
-        "FR3": "FR3"  // Update to match the sheet name for FR3
+        "YB": "YB",     // Make sure this sheet name exists in Google Sheets
+        "FR2": "FR2",   // Ensure this sheet name is correct
+        "FR3": "FR3"    // Ensure this sheet name is correct
     };
 
     // Initialize DataTable
@@ -99,6 +99,7 @@
             return;
         }
 
+        // Use the sheet name correctly in the API call (e.g., FR2, YB, FR3)
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
 
         // Display loading indicator
@@ -153,6 +154,7 @@
     // Load default tab on page load
     loadData(activeTab);
 });
+
 
     </script>
 </body>
