@@ -110,9 +110,9 @@
     $(document).ready(function() {
     const apiKey = 'AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k'; // Your API key
     const raceDataUrls = {
-        YB: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/YB!A3:J85?key=AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k',
-        FR2: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR2!A3:J85?key=AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k',
-        FR3: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR3!A3:J85?key=AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k'
+        YB: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/YB!A3:J85?key=' + apiKey,
+        FR2: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR2!A3:J85?key=' + apiKey,
+        FR3: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR3!A3:J85?key=' + apiKey
     };                                                    //1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk
 
     let dataTable; // To store the DataTable instance
@@ -126,9 +126,12 @@
         }
         // Reinitialize DataTable
         dataTable = $('#resultsTable').DataTable({
-            destroy: true, // Ensure previous instance is removed
-            autoWidth: false, // Disable auto-width for better control
-            responsive: true // Ensure responsive table
+                destroy: true, // Ensure previous instance is removed
+                autoWidth: false, // Disable auto-width for better control
+                responsive: true, // Ensure responsive table
+                paging: true, // Enable pagination
+                searching: true, // Enable search functionality
+                ordering: true, // Enable column sorting
         });
     }
 
