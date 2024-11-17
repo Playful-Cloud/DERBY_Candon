@@ -103,80 +103,76 @@
     </div>
 
     <script>
+
+
+        
+
     $(document).ready(function() {
-        const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
-        const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
+    const apiKey = 'AIzaSyDnQPBVIY-hChWThux9R8WknqvuDHsDFog'; // Your API key
+    const raceDataUrls = {
+        YB: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/YB!A3:J85?key=' + apiKey,
+        FR2: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR2!A3:J85?key=' + apiKey,
+        FR3: 'https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR3!A3:J85?key=' + apiKey
+    };
 
-        let dataTable; // To store the DataTable instance
-        let activeTab = 'YB'; // Default active tab
+    let dataTable; // To store the DataTable instance
+    let activeTab = 'YB'; // Default active tab (can be changed based on the tab)
 
-        // Function to initialize or reinitialize DataTable
-        function initDataTable() {
-            if (dataTable) {
-                // Destroy previous instance
-                dataTable.destroy();
-            }
-            // Reinitialize DataTable
-            dataTable = $('#resultsTable').DataTable({
-                destroy: true, // Ensure previous instance is removed
-                autoWidth: false, // Disable auto-width for better control
-                responsive: true, // Ensure responsive table
-                paging: true, // Enable pagination
-                searching: true, // Enable search functionality
-                ordering: true, // Enable column sorting
-            });
+    // Function to initialize or reinitialize DataTable
+    function initDataTable() {
+        if (dataTable) {
+            // Destroy previous instance
+            dataTable.destroy();
         }
-
-        // Function to load data for a specific tab
-        function loadData(tab) {
-            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
-
-            $.getJSON(apiUrl, function(data) {
-                console.log(`Data for tab "${tab}":`, data);
-
-                let tableHeaders = '';
-                let tableData = '';
-
-                if (data && data.values && data.values.length > 1) {
-                    // Dynamically build headers
-                    data.values[0].forEach(header => {
-                        tableHeaders += `<th>${header}</th>`;
-                    });
-
-                    // Populate rows
-                    data.values.slice(1).forEach(row => {
-                        tableData += "<tr>";
-                        row.forEach(cell => {
-                            tableData += `<td>${cell || ''}</td>`; // Handle undefined or empty cells
-                        });
-                        tableData += "</tr>";
-                    });
-                } else {
-                    console.error("Invalid or missing data:", data);
-                }
-
-                // Update table structure
-                $('#resultsTable thead tr').html(tableHeaders);
-                $('#resultsTable tbody').html(tableData);
-
-                // Reinitialize DataTable
-                initDataTable();
-            }).fail(err => {
-                console.error("Error fetching data:", err);
-                $('#resultsTable tbody').html('<tr><td colspan="100%">Failed to load data. Please try again later.</td></tr>');
-            });
-        }
-
-        // Event listener for tab navigation
-        $('.tab-btn').on('click', function() {
-            const tab = $(this).data('tab');
-            activeTab = tab;
-            loadData(tab);
+        // Reinitialize DataTable
+        dataTable = $('#resultsTable').DataTable({
+            destroy: true, // Ensure previous instance is removed
+            autoWidth: false, // Disable auto-width for better control
+            responsive: true // Ensure responsive table
         });
+    }
 
-        // Initially load data for the default active tab
-        loadData(activeTab);
-    });
-    </script>
-</body>
-</html>
+    // Function to load data for a specific tab (YB, FR2, FR3)
+    function loadData(tab) {
+        const apiUrl = raceDataUrls[tab]; // Get the URL based on the tab selected
+
+        $.getJSON(apiUrl, function(data) {
+            console.log(`Data for tab "${tab}":`, data);
+
+            let tableHeaders = '';
+            let tableData = '';
+
+            if (data && data.values && data.values.length > 1) {
+                // Dynamically build headers
+                data.values[0].forEach(header => {
+                    tableHeaders += `<th>${header}</th>`;
+                });
+
+                // Populate rows
+                data.values.slice(1).forEach(row => {
+                    tableData += "<tr>";
+                    row.forEach(cell => {
+                        tableData += `<td>${cell || ''}</td>`; // Handle undefined or empty cells
+                    });
+                    tableData += "</tr>";
+                });
+            } else {
+                console.error("Invalid or missing data:", data);
+            }
+
+            // Update table structure
+            $('#resultsTable thead tr').html(tableHeaders);
+            $('#resultsTable tbody').html(tableData);
+
+            // Reinitialize DataTable
+            initDataTable();
+        }).fail(err => {
+            console.error("Error fetching data:", err);
+            $('#resultsTable tbody').html('<tr><td colspan="100%">Failed to load data. Please try again later.</td></tr>');
+        });
+    }
+
+    // Initial load for the default tab (YB)
+    loadData(activeTab);
+});
+
