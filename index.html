@@ -82,63 +82,72 @@
         });
     }
 
-    // Fetch data for a tab
+    // Fetch data for a tab with dynamic range
     function loadData(tab) {
-        // Map tabs to their ranges in the Google Sheet
-        const tabRanges = {
-            YB: "YB",
-            FR2: "FR2",
-            FR3: "FR3",
-        };
-
-        // Get the range for the active tab
-        const range = tabRanges[tab];
-
-        // Ensure range is valid
-        if (!range) {
-            console.error(`Invalid tab: ${tab}`);
-            return;
-        }
-
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+        // Construct the URL for the first row (headers) to determine the range
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}!A1:Z1?key=${apiKey}`;
 
         // Display loading indicator
         $('#resultsTable thead tr').html('<th>Loading...</th>');
         $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
 
-        $.getJSON(apiUrl, function(data) {
-            console.log(`Data fetched for tab "${tab}":`, data);
+        // First, get the headers to determine how many columns we have
+        $.getJSON(apiUrl, function(headerData) {
+            console.log(`Headers fetched for tab "${tab}":`, headerData);
 
-            let tableHeaders = '';
-            let tableData = '';
+            if (headerData && headerData.values && headerData.values.length > 0) {
+                // Determine the number of columns based on the first row of data
+                const numColumns = headerData.values[0].length;
 
-            if (data && data.values && data.values.length > 1) {
-                // Generate table headers
-                data.values[0].forEach(header => {
-                    tableHeaders += `<th>${header}</th>`;
+                // Now, construct the dynamic range based on the number of rows in the tab
+                const range = `A2:${String.fromCharCode(65 + numColumns - 1)}${headerData.values.length + 1}`;
+
+                // Fetch the full data using the constructed dynamic range
+                const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}!${range}?key=${apiKey}`;
+
+                $.getJSON(dataUrl, function(data) {
+                    console.log(`Data fetched for tab "${tab}":`, data);
+
+                    let tableHeaders = '';
+                    let tableData = '';
+
+                    if (data && data.values && data.values.length > 1) {
+                        // Generate table headers
+                        data.values[0].forEach(header => {
+                            tableHeaders += `<th>${header}</th>`;
+                        });
+
+                        // Generate table rows
+                        data.values.slice(1).forEach(row => {
+                            tableData += '<tr>';
+                            row.forEach(cell => {
+                                tableData += `<td>${cell}</td>`;
+                            });
+                            tableData += '</tr>';
+                        });
+                    } else {
+                        tableHeaders = '<th>No Data Available</th>';
+                        tableData = '<tr><td>No records found</td></tr>';
+                    }
+
+                    $('#resultsTable thead tr').html(tableHeaders);
+                    $('#resultsTable tbody').html(tableData);
+
+                    initDataTable();
+                }).fail(function(jqXHR) {
+                    console.error("API Request Failed:", jqXHR);
+                    $('#resultsTable thead tr').html('<th>Error</th>');
+                    $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
                 });
 
-                // Generate table rows
-                data.values.slice(1).forEach(row => {
-                    tableData += '<tr>';
-                    row.forEach(cell => {
-                        tableData += `<td>${cell}</td>`;
-                    });
-                    tableData += '</tr>';
-                });
             } else {
-                tableHeaders = '<th>No Data Available</th>';
-                tableData = '<tr><td>No records found</td></tr>';
+                $('#resultsTable thead tr').html('<th>Error</th>');
+                $('#resultsTable tbody').html('<tr><td>No header data found. Check the tab name or sheet structure.</td></tr>');
             }
-
-            $('#resultsTable thead tr').html(tableHeaders);
-            $('#resultsTable tbody').html(tableData);
-
-            initDataTable();
         }).fail(function(jqXHR) {
-            console.error("API Request Failed:", jqXHR);
+            console.error("Header Request Failed:", jqXHR);
             $('#resultsTable thead tr').html('<th>Error</th>');
-            $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
+            $('#resultsTable tbody').html('<tr><td>Failed to fetch headers. Check the console for details.</td></tr>');
         });
     }
 
@@ -154,6 +163,7 @@
     // Load default tab on page load
     loadData(activeTab);
 });
+
 
 
     </script>
