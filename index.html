@@ -9,206 +9,123 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
-<style>
-    body { font-family: Arial, sans-serif; }
-    .container {
-        max-width: 2300px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
-    }
-    h1 { text-align: center; }
-    #resultsTable {
-        margin: 0 auto;
-        width: 100%;
-        border-collapse: collapse;
-    }
-    #resultsTable th, #resultsTable td {
-        padding: 10px 15px;
-        text-align: left;
-        vertical-align: top;
-        word-wrap: break-word;
-        max-width: 200px; /* Limit column width */
-        overflow: hidden; /* Hide overflowing text */
-        text-overflow: ellipsis; /* Add ellipsis for overflow */
-    }
-    #resultsTable th {
-        font-size: 1.2rem;
-        background-color: #f4f4f4;
-    }
-    #resultsTable th {
-        white-space: nowrap; /* Prevent text wrapping */
-        overflow: hidden; /* Hide overflowing text */
-        text-overflow: ellipsis; /* Show ellipsis for long text */
-    }
-    .notes-section {
-        margin-top: 30px;
-        padding: 15px;
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-    }
-    .notes-section p {
-        font-size: 1rem;
-        color: #555;
-    }
-    #loader {
-        display: none;
-        text-align: center;
-    }
-    #loader p {
-        font-size: 1.2rem;
-        color: #333;
-    }
-    @media (max-width: 768px) {
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 2300px; margin: 0 auto; padding: 20px; text-align: center; }
+        h1 { text-align: center; }
+        #resultsTable { margin: 0 auto; width: 100%; border-collapse: collapse; }
         #resultsTable th, #resultsTable td {
-            font-size: 0.9rem;
-            padding: 8px;
+            padding: 10px 15px;
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        h1 {
-            font-size: 1.5rem;
+        #resultsTable th {
+            font-size: 1.2rem;
+            background-color: #f4f4f4;
         }
-    }
-
-    /* Add tab button styles here */
-    .tab-btn {
-        cursor: pointer;
-        padding: 10px 20px;
-        margin: 5px;
-        background-color: #f4f4f4;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-
-    .tab-btn.active {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-    }
-</style>
-    
+        .tab-btn { cursor: pointer; padding: 10px 20px; margin: 5px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 5px; }
+        .tab-btn.active { background-color: #007bff; color: white; font-weight: bold; }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>BBC-Manila NDR - DERBY as of 3rd LAP - Candon</h1>
-        <p> Initial Unofficial Result </p>
+        <p>Initial Unofficial Result</p>
 
         <!-- Navigation for Tabs -->
         <div class="tabs-nav">
             <button class="tab-btn" data-tab="YB">YB</button>
             <button class="tab-btn" data-tab="FR2">FR2</button>
             <button class="tab-btn" data-tab="FR3">FR3</button>
-            <!-- Add more buttons as needed -->
         </div>
 
         <table id="resultsTable" class="display">
-            <thead>
-                <tr>
-                    <!-- Headers will be dynamically loaded -->
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be dynamically loaded -->
-            </tbody>
+            <thead><tr></tr></thead>
+            <tbody></tbody>
         </table>
-
-        <div class="notes-section">
-            <h2>Notes for Viewers</h2>
-            <p>
-                Please note that the race results are displayed based on various factors, including performance in different locations such as Bauang, Balaoan, and Candon. The "TOTAL SPEED" represents the aggregate speed of the birds across these locations...
-            </p>
-        </div>
     </div>
 
-   <script>
-<script>
-    $(document).ready(function() {
-        const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
-        const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
+    <script>
+        $(document).ready(function() {
+            const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
+            const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
+            let dataTable; // DataTable instance
+            let activeTab = "YB"; // Default tab
 
-        let dataTable; // To store the DataTable instance
-        let activeTab = "YB"; // Default active tab
-
-        // Function to initialize or reinitialize DataTable
-        function initDataTable() {
-            if (dataTable) {
-                // Destroy the previous instance if it exists
-                dataTable.destroy();
-            }
-            dataTable = $('#resultsTable').DataTable({
-                autoWidth: false,
-                responsive: true,
-                paging: true,
-                searching: true,
-                ordering: true,
-            });
-        }
-
-        // Function to load data for a specific tab
-        function loadData(tab) {
-            console.log(`Loading data for tab: ${tab}`); // Debugging message
-            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
-
-            // Show a loading indicator
-            $('#resultsTable thead tr').html('<th>Loading...</th>');
-            $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
-
-            // Fetch data from the specified tab
-            $.getJSON(apiUrl, function(data) {
-                console.log(`Data fetched for tab "${tab}":`, data);
-
-                let tableHeaders = '';
-                let tableData = '';
-
-                if (data && data.values && data.values.length > 1) {
-                    // Build headers dynamically
-                    data.values[0].forEach(header => {
-                        tableHeaders += `<th>${header}</th>`;
-                    });
-
-                    // Build rows dynamically
-                    data.values.slice(1).forEach(row => {
-                        tableData += '<tr>';
-                        row.forEach(cell => {
-                            tableData += `<td>${cell}</td>`;
-                        });
-                        tableData += '</tr>';
-                    });
-                } else {
-                    tableHeaders = '<th>No Data Available</th>';
-                    tableData = '<tr><td>No records found</td></tr>';
+            // Initialize DataTable
+            function initDataTable() {
+                if (dataTable) {
+                    dataTable.destroy();
                 }
+                dataTable = $('#resultsTable').DataTable({
+                    autoWidth: false,
+                    responsive: true,
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                });
+            }
 
-                // Render the headers and data
-                $('#resultsTable thead tr').html(tableHeaders);
-                $('#resultsTable tbody').html(tableData);
+            // Fetch data for a tab
+            function loadData(tab) {
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
 
-                // Initialize DataTable
-                initDataTable();
-            }).fail(function() {
-                // Handle errors
-                $('#resultsTable thead tr').html('<th>Error</th>');
-                $('#resultsTable tbody').html('<tr><td>Failed to fetch data</td></tr>');
+                // Display loading indicator
+                $('#resultsTable thead tr').html('<th>Loading...</th>');
+                $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
+
+                $.getJSON(apiUrl, function(data) {
+                    console.log(`Data fetched for tab "${tab}":`, data);
+
+                    let tableHeaders = '';
+                    let tableData = '';
+
+                    if (data && data.values && data.values.length > 1) {
+                        // Generate table headers
+                        data.values[0].forEach(header => {
+                            tableHeaders += `<th>${header}</th>`;
+                        });
+
+                        // Generate table rows
+                        data.values.slice(1).forEach(row => {
+                            tableData += '<tr>';
+                            row.forEach(cell => {
+                                tableData += `<td>${cell}</td>`;
+                            });
+                            tableData += '</tr>';
+                        });
+                    } else {
+                        tableHeaders = '<th>No Data Available</th>';
+                        tableData = '<tr><td>No records found</td></tr>';
+                    }
+
+                    $('#resultsTable thead tr').html(tableHeaders);
+                    $('#resultsTable tbody').html(tableData);
+
+                    initDataTable();
+                }).fail(function(jqXHR) {
+                    console.error("API Request Failed:", jqXHR);
+                    $('#resultsTable thead tr').html('<th>Error</th>');
+                    $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
+                });
+            }
+
+            // Handle tab switching
+            $('.tab-btn').click(function() {
+                const tab = $(this).data('tab');
+                $('.tab-btn').removeClass('active');
+                $(this).addClass('active');
+                activeTab = tab;
+                loadData(tab);
             });
-        }
 
-        // Tab button click event
-        $('.tab-btn').click(function() {
-            // Update the active tab
-            activeTab = $(this).data('tab');
-
-            // Update button styles
-            $('.tab-btn').removeClass('active');
-            $(this).addClass('active');
-
-            // Load data for the selected tab
+            // Load default tab on page load
             loadData(activeTab);
         });
-
-        // Load data for the default tab on page load
-        loadData(activeTab);
-    });
-</script>
-
-
+    </script>
 </body>
 </html>
