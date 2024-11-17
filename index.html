@@ -105,12 +105,12 @@
                 showLoader(false); // Hide loader after data fetch
 
                 const rows = data.values;
+                const table = dataTable; // Use existing DataTable instance
+
+                table.clear(); // Clear existing data before adding new data
+
                 if (rows && rows.length > 0) {
                     const headers = rows[0];
-                    const table = dataTable; // Use existing DataTable instance
-                    table.clear(); // Clear existing data
-
-                    // Update headers dynamically
                     $('#resultsTable thead tr').empty();
                     headers.forEach(header => {
                         $('#resultsTable thead tr').append(`<th>${header}</th>`);
@@ -145,13 +145,13 @@
 
         // Initialize DataTable
         $(document).ready(function() {
-            // Initialize DataTable once
+            // Initialize DataTable only once on page load
             dataTable = $('#resultsTable').DataTable();
 
             // Event listeners for tab buttons
             $('.tab-btn').on('click', function() {
                 const sheetName = $(this).data('tab');
-                fetchData(sheetName);
+                fetchData(sheetName); // Load the selected tab's data
             });
 
             // Load default tab data on page load
