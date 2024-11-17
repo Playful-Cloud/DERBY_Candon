@@ -63,81 +63,97 @@
 
     <script>
         $(document).ready(function() {
-            const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
-            const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
-            let dataTable; // DataTable instance
-            let activeTab = "YB"; // Default tab
+    const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
+    const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
+    let dataTable; // DataTable instance
+    let activeTab = "YB"; // Default tab
 
-            // Initialize DataTable
-            function initDataTable() {
-                if (dataTable) {
-                    dataTable.destroy();
-                }
-                dataTable = $('#resultsTable').DataTable({
-                    autoWidth: false,
-                    responsive: true,
-                    paging: true,
-                    searching: true,
-                    ordering: true,
-                });
-            }
+    // Map `data-tab` to actual sheet names
+    const tabToSheetMap = {
+        "YB": "YB",
+        "FR2": "FR2", // Update to match the sheet name for FR2
+        "FR3": "FR3"  // Update to match the sheet name for FR3
+    };
 
-            // Fetch data for a tab
-            function loadData(tab) {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
-
-                // Display loading indicator
-                $('#resultsTable thead tr').html('<th>Loading...</th>');
-                $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
-
-                $.getJSON(apiUrl, function(data) {
-                    console.log(`Data fetched for tab "${tab}":`, data);
-
-                    let tableHeaders = '';
-                    let tableData = '';
-
-                    if (data && data.values && data.values.length > 1) {
-                        // Generate table headers
-                        data.values[0].forEach(header => {
-                            tableHeaders += `<th>${header}</th>`;
-                        });
-
-                        // Generate table rows
-                        data.values.slice(1).forEach(row => {
-                            tableData += '<tr>';
-                            row.forEach(cell => {
-                                tableData += `<td>${cell}</td>`;
-                            });
-                            tableData += '</tr>';
-                        });
-                    } else {
-                        tableHeaders = '<th>No Data Available</th>';
-                        tableData = '<tr><td>No records found</td></tr>';
-                    }
-
-                    $('#resultsTable thead tr').html(tableHeaders);
-                    $('#resultsTable tbody').html(tableData);
-
-                    initDataTable();
-                }).fail(function(jqXHR) {
-                    console.error("API Request Failed:", jqXHR);
-                    $('#resultsTable thead tr').html('<th>Error</th>');
-                    $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
-                });
-            }
-
-            // Handle tab switching
-            $('.tab-btn').click(function() {
-                const tab = $(this).data('tab');
-                $('.tab-btn').removeClass('active');
-                $(this).addClass('active');
-                activeTab = tab;
-                loadData(tab);
-            });
-
-            // Load default tab on page load
-            loadData(activeTab);
+    // Initialize DataTable
+    function initDataTable() {
+        if (dataTable) {
+            dataTable.destroy();
+        }
+        dataTable = $('#resultsTable').DataTable({
+            autoWidth: false,
+            responsive: true,
+            paging: true,
+            searching: true,
+            ordering: true,
         });
+    }
+
+    // Fetch data for a tab
+    function loadData(tab) {
+        const sheetName = tabToSheetMap[tab];
+        if (!sheetName) {
+            console.error(`No sheet mapped for tab "${tab}"`);
+            $('#resultsTable thead tr').html('<th>Error</th>');
+            $('#resultsTable tbody').html('<tr><td>Invalid tab selected.</td></tr>');
+            return;
+        }
+
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
+
+        // Display loading indicator
+        $('#resultsTable thead tr').html('<th>Loading...</th>');
+        $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
+
+        $.getJSON(apiUrl, function(data) {
+            console.log(`Data fetched for tab "${tab}"`, data);
+
+            let tableHeaders = '';
+            let tableData = '';
+
+            if (data && data.values && data.values.length > 1) {
+                // Generate table headers
+                data.values[0].forEach(header => {
+                    tableHeaders += `<th>${header}</th>`;
+                });
+
+                // Generate table rows
+                data.values.slice(1).forEach(row => {
+                    tableData += '<tr>';
+                    row.forEach(cell => {
+                        tableData += `<td>${cell}</td>`;
+                    });
+                    tableData += '</tr>';
+                });
+            } else {
+                tableHeaders = '<th>No Data Available</th>';
+                tableData = '<tr><td>No records found</td></tr>';
+            }
+
+            $('#resultsTable thead tr').html(tableHeaders);
+            $('#resultsTable tbody').html(tableData);
+
+            initDataTable();
+        }).fail(function(jqXHR) {
+            console.error("API Request Failed:", jqXHR);
+            $('#resultsTable thead tr').html('<th>Error</th>');
+            $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
+        });
+    }
+
+    // Handle tab switching
+    $('.tab-btn').click(function() {
+        const tab = $(this).data('tab');
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
+        activeTab = tab;
+        loadData(tab);
+    });
+
+    // Load default tab on page load
+    loadData(activeTab);
+});
+
     </script>
 </body>
 </html>
