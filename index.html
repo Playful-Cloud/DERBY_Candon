@@ -56,11 +56,12 @@
                 Please note that the race results are displayed based on various factors, including performance in different locations such as Bauang, Balaoan, and Candon. The "TOTAL SPEED" represents the aggregate speed of the birds across these locations. 
                 If you have any further questions, feel free to reach out for clarification.
             </p>
-
-
-
     </div>
 
+
+
+
+        
     <script>
     $(document).ready(function() {
     const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
@@ -84,28 +85,42 @@
 
     // Fetch data for a tab with dynamic range
     function loadData(tab) {
-        // Construct the URL for the first row (headers) to determine the range
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}!A1:Z1?key=${apiKey}`;
+        // Map tabs to their ranges in the Google Sheet
+        const tabRanges = {
+            YB: "YB",
+            FR2: "FR2",
+            FR3: "FR3",
+        };
+
+        // Get the range for the active tab
+        const range = tabRanges[tab];
+
+        // Ensure range is valid
+        if (!range) {
+            console.error(`Invalid tab: ${tab}`);
+            return;
+        }
+
+        const apiUrlHeaders = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}!A1:Z1?key=${apiKey}`;
+        const apiUrlData = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
         // Display loading indicator
         $('#resultsTable thead tr').html('<th>Loading...</th>');
         $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
 
-        // First, get the headers to determine how many columns we have
-        $.getJSON(apiUrl, function(headerData) {
+        // Fetch headers first to determine the number of columns
+        $.getJSON(apiUrlHeaders, function(headerData) {
             console.log(`Headers fetched for tab "${tab}":`, headerData);
 
             if (headerData && headerData.values && headerData.values.length > 0) {
-                // Determine the number of columns based on the first row of data
+                // Get the number of columns from the header row
                 const numColumns = headerData.values[0].length;
-
-                // Now, construct the dynamic range based on the number of rows in the tab
-                const range = `A2:${String.fromCharCode(65 + numColumns - 1)}${headerData.values.length + 1}`;
+                
+                // Construct the dynamic range to include all rows
+                const dynamicRange = `${range}!A2:${String.fromCharCode(65 + numColumns - 1)}${headerData.values.length + 1}`;
 
                 // Fetch the full data using the constructed dynamic range
-                const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}!${range}?key=${apiKey}`;
-
-                $.getJSON(dataUrl, function(data) {
+                $.getJSON(apiUrlData, function(data) {
                     console.log(`Data fetched for tab "${tab}":`, data);
 
                     let tableHeaders = '';
@@ -139,7 +154,6 @@
                     $('#resultsTable thead tr').html('<th>Error</th>');
                     $('#resultsTable tbody').html('<tr><td>Failed to fetch data. Check the console for details.</td></tr>');
                 });
-
             } else {
                 $('#resultsTable thead tr').html('<th>Error</th>');
                 $('#resultsTable tbody').html('<tr><td>No header data found. Check the tab name or sheet structure.</td></tr>');
