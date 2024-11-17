@@ -28,6 +28,10 @@
             text-align: left;
             vertical-align: top;
             word-wrap: break-word;
+            max-width: 200px; /* Limit column width */
+            overflow: hidden; /* Hide overflowing text */
+            text-overflow: ellipsis; /* Add ellipsis for overflow */
+
         }
         #resultsTable th {
             font-size: 1.2rem;
@@ -53,6 +57,23 @@
         .notes-section p {
             font-size: 1rem;
             color: #555;
+        }
+        #loader {
+            display: none;
+            text-align: center;
+        }
+        #loader p {
+            font-size: 1.2rem;
+            color: #333;
+        }
+        @media (max-width: 768px) {
+            #resultsTable th, #resultsTable td {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
