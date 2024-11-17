@@ -62,18 +62,11 @@
     </div>
 
     <script>
-$(document).ready(function() {
+    $(document).ready(function() {
     const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your Google Sheets ID
     const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API key
     let dataTable; // DataTable instance
     let activeTab = "YB"; // Default tab
-
-    // Map `data-tab` to actual sheet names
-    const tabToSheetMap = {
-        "YB": "YB",     // Make sure this sheet name exists in Google Sheets
-        "FR2": "FR2",   // Ensure this sheet name is correct
-        "FR3": "FR3"    // Ensure this sheet name is correct
-    };
 
     // Initialize DataTable
     function initDataTable() {
@@ -91,23 +84,30 @@ $(document).ready(function() {
 
     // Fetch data for a tab
     function loadData(tab) {
-        const sheetName = tabToSheetMap[tab];
-        if (!sheetName) {
-            console.error(`No sheet mapped for tab "${tab}"`);
-            $('#resultsTable thead tr').html('<th>Error</th>');
-            $('#resultsTable tbody').html('<tr><td>Invalid tab selected.</td></tr>');
+        // Map tabs to their ranges in the Google Sheet
+        const tabRanges = {
+            YB: "YB",
+            FR2: "FR2",
+            FR3: "FR3",
+        };
+
+        // Get the range for the active tab
+        const range = tabRanges[tab];
+
+        // Ensure range is valid
+        if (!range) {
+            console.error(`Invalid tab: ${tab}`);
             return;
         }
 
-        // Use the sheet name correctly in the API call (e.g., FR2, YB, FR3)
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
         // Display loading indicator
         $('#resultsTable thead tr').html('<th>Loading...</th>');
         $('#resultsTable tbody').html('<tr><td>Loading data...</td></tr>');
 
         $.getJSON(apiUrl, function(data) {
-            console.log(`Data fetched for tab "${tab}"`, data);
+            console.log(`Data fetched for tab "${tab}":`, data);
 
             let tableHeaders = '';
             let tableData = '';
