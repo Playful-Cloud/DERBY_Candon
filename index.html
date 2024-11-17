@@ -103,72 +103,80 @@
     </div>
 
     <script>
+    $(document).ready(function() {
+        const sheetId = "1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk"; // Your sheet ID
+        const apiKey = "AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k"; // Your API Key
 
+        let dataTable; // To store the DataTable instance
+        let activeTab = 'YB'; // Default active tab
 
-        
-
-$(document).ready(function() {
-    const apiKey = 'AIzaSyBBRTnPTyQEHizMS9xv4tVbDAR0xYRA87k';
-    const raceDataUrls = {
-        YB: `https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/YB!A3:J85?key= apiKey`,
-        FR2: `https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR2!A3:J85?key= apiKey`,
-        FR3: `https://sheets.googleapis.com/v4/spreadsheets/1B8vkEiOwZlNndMv5q5Ado3BXNXYystDciV9_r2wpQQk/values/FR3!A3:J85?key= apiKey`
-    };
-
-    let dataTable;
-    let activeTab = 'YB'; // Default active tab
-
-    function initDataTable() {
-        if ($.fn.DataTable.isDataTable('#resultsTable')) {
-            $('#resultsTable').DataTable().destroy();
-        }
-        $('#resultsTable').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            responsive: true
-        });
-    }
-
-    function loadData(tab) {
-        const apiUrl = raceDataUrls[tab];
-        console.log("Fetching data for tab:", tab, "URL:", apiUrl);
-
-        $.getJSON(apiUrl, function(data) {
-            if (data && data.values && data.values.length > 0) {
-                const headers = data.values[0];
-                const rows = data.values.slice(1);
-
-                // Populate table
-                const $thead = $('#resultsTable thead tr');
-                const $tbody = $('#resultsTable tbody');
-
-                $thead.empty();
-                headers.forEach(header => $thead.append(`<th>${header}</th>`));
-
-                $tbody.empty();
-                rows.forEach(row => {
-                    $tbody.append('<tr>' + row.map(cell => `<td>${cell || ''}</td>`).join('') + '</tr>');
-                });
-
-                initDataTable();
-            } else {
-                console.warn("No data for tab:", tab);
-                $('#resultsTable tbody').html('<tr><td colspan="10">No data available</td></tr>');
+        // Function to initialize or reinitialize DataTable
+        function initDataTable() {
+            if (dataTable) {
+                // Destroy previous instance
+                dataTable.destroy();
             }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error("Error fetching data:", textStatus, errorThrown);
-        });
-    }
-
-    $('.tab-btn').on('click', function() {
-        const selectedTab = $(this).data('tab');
-        if (selectedTab && raceDataUrls[selectedTab]) {
-            activeTab = selectedTab;
-            loadData(activeTab);
+            // Reinitialize DataTable
+            dataTable = $('#resultsTable').DataTable({
+                destroy: true, // Ensure previous instance is removed
+                autoWidth: false, // Disable auto-width for better control
+                responsive: true, // Ensure responsive table
+                paging: true, // Enable pagination
+                searching: true, // Enable search functionality
+                ordering: true, // Enable column sorting
+            });
         }
-    });
 
-    // Load initial tab data
-    loadData(activeTab);
-});
+        // Function to load data for a specific tab
+        function loadData(tab) {
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${tab}?key=${apiKey}`;
+
+            $.getJSON(apiUrl, function(data) {
+                console.log(`Data for tab "${tab}":`, data);
+
+                let tableHeaders = '';
+                let tableData = '';
+
+                if (data && data.values && data.values.length > 1) {
+                    // Dynamically build headers
+                    data.values[0].forEach(header => {
+                        tableHeaders += `<th>${header}</th>`;
+                    });
+
+                    // Populate rows
+                    data.values.slice(1).forEach(row => {
+                        tableData += "<tr>";
+                        row.forEach(cell => {
+                            tableData += `<td>${cell || ''}</td>`; // Handle undefined or empty cells
+                        });
+                        tableData += "</tr>";
+                    });
+                } else {
+                    console.error("Invalid or missing data:", data);
+                }
+
+                // Update table structure
+                $('#resultsTable thead tr').html(tableHeaders);
+                $('#resultsTable tbody').html(tableData);
+
+                // Reinitialize DataTable
+                initDataTable();
+            }).fail(err => {
+                console.error("Error fetching data:", err);
+                $('#resultsTable tbody').html('<tr><td colspan="100%">Failed to load data. Please try again later.</td></tr>');
+            });
+        }
+
+        // Event listener for tab navigation
+        $('.tab-btn').on('click', function() {
+            const tab = $(this).data('tab');
+            activeTab = tab;
+            loadData(tab);
+        });
+
+        // Initially load data for the default active tab
+        loadData(activeTab);
+    });
+    </script>
+</body>
+</html>
